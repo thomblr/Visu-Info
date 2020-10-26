@@ -1,0 +1,30 @@
+dinosaur,zone,diet,size,weight,speed,lived
+allosaurus,land,carnivorous,8.5 - 9.7 m,1500 kg,30 - 55 kmh,late jurassic - turonian
+ankylosaurus,land,herbivorous,6 - 8 m,4800 - 8000 kg,6 mph,campanian - maastrichtian
+apatosaurus,land,herbivorous,21 - 23 m,16000 - 22000 kg,20 kmh,oxfordian - tithonian
+archaeopteryx,land,carnivorous,0.51 m,1 kg,7.2 kmh,tithonian - barremian
+baryonyx,land,carnivorous,7.5 - 10 m,1200 - 1700 kg,18 mph,berriasian - barremian
+brachiosaurus,land,herbivorous,18 - 21 m,28000 - 58000 kg,10 mph,oxfordian - tithonian
+brontosaurus,land,herbivorous,22 m,17000 kg,20 - 30 kmh,kimmeridgian - tithonian
+camarasaurus,land,herbivorous,15 - 23 m,20000 kg,21 kmh,jurassic - cenomanian
+carnotaurus,land,carnivorous,7.5 - 9 m,1000 - 3000 kg,48 - 56 kmh,campanian
+compsognathus,land,carnivorous,0.7 - 1.4 m,3 kg,40 mph,kimmeridgian - tithonian
+dilophosaurus,land,carnivorous,7 m,400 kg,30 mph,hettangian - pliensbachian
+dimetrodon,land,carnivorous,1.7 - 4.6 m,28 - 250 kg,10 mph,cisuralian
+diplodocus,land,herbivorous,27 - 33 m,11000 - 15000 kg,12 mph,oxfordian - tithonian
+edmontosaurus,land,herbivorous,9 - 13 m,3000 - 3500 kg,45 kmh,campanian - maastrichtian
+gallimimus,land,herbivorous,6 m,200 kg,42 - 56 kmh,cenomanian - maastrichtian
+iguanodon,land,herbivorous,10 m,4000 - 5000 kg,24 kmh,kimmeridgian - cenomanian
+megalosaurus,land,carnivorous,9 m,1000 - 3000 kg,15 mph,rhaetian - maastrichtian
+mosasaurus,aquatic,carnivorous,10 - 18 m,14000 kg,30 mph,cretaceous - paleocene
+pachycephalosaurus,land,omnivirous,4.5 m,450 kg,20 kmh,maastrichtian
+parasaurolophus,land,herbivorous,10 - 11 m,2700 - 3600 kg,25 mph,campanian
+plesiosaurus,aquatic,carnivorous,3.5 m,450 kg,9 kmh,rhaetian - maastrichtian
+protoceratops,land,herbivorous,1.8 m,80 kg,25 kmh,early cretaceous - campanian
+pteranodon,air,carnivorous,4 - 5.5 m,20 - 90 kg,67 mph,coniacian - campanian
+pterodactylus,air,carnivorous,1 m,1 - 5 kg,10 mph,hettangian - valanginian
+spinosaurus,land,carnivorous,15 - 16 m,6400 - 7500 kg,11 mph,albian - campanian
+stegosaurus,land,herbivorous,9 m,5300 - 7000 kg,7 kmh,late jurassic - albian
+triceratops,land,herbivorous,8 - 9 m,6000 - 12000 kg,32 kmh,campanian - maastrichtian
+tyrannosaurus,land,carnivorous,12 - 13 m,4500 - 14000 kg,27 kmh,maastrichtian
+velociraptor,land,carnivorous,1.5 - 2 m,15 - 20 kg,64 kmh,cretaceous - maastrichtian
