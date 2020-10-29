@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset='utf-8'>
+		<title>LINE CHART</title>   <!-- Set the title of the page here -->
+		<style type='text/css'>   /* The CSS code goes here */
+
+			/* CSS code for the text elements inside an element that has the axis class */
+
+			.axis text {
+				font: 10px sans-serif;   /* Sets the font family to sans-serif the the font-size to 10px */
+			}
+
+			/* CSS code for the path elements inside an element that has the axis class */
+
+			.axis path {
+				fill: none;   /* Otherwise, the axis would look like a thick line */
+				stroke: #000000;   /* Sets the color of the axis to black */
+			}
+
+			/* CSS code for the element that has the id linechart */
+
+			#linechart {
+				width: 1000px;   /* Dimensions of the linechart element */
+				height: 600px;   /* Note : linechart is an svg, thus it is important to set its size, otherwise the elements inside it won't appear */
+			}
+
+			/* CSS code for the button class (from W3schools) */
+
+			.beautiful_button {
+				background-color: steelblue;   /* The buttons are colored in steelblue */
+				border: none;   /* The buttons have no border */
+				color: white;   /* The text inside the buttons is white */
+				padding: 15px 32px;   /* Defines the space in pixels between the text inside the buttons and their edges */
+				text-align: center;   /* The text inside the buttons is centered */
+				font-size: 16px;   /* Font size of the text inside the buttons */
+			}
+
+			#buttons_container{
+				width: 1000px;   /* Dimensions of the buttons_container element */
+				text-align: center;   /* Centers the contents of the buttons_container element */
+			}
+
+		</style>
+		<!-- CSS file imports go here -->
+	</head>
+	<body> <!-- The elements of the page go here -->
+		
+		<svg id='linechart'></svg>   <!-- Working example 2 - line chart -->
+
+		<div id='buttons_container'>
+			<button id='day' class='beautiful_button'>Daily</button>
+			<button id='month' class='beautiful_button'>Monthly</button>
+			<button id='year' class='beautiful_button'>Yearly</button>
+		</div>
+
+	</body>
+</html>
+<script src='https://d3js.org/d3.v3.min.js'></script>   <!-- d3.js library import (I personnaly use the version 3 but you can use another version. Some of the examples may not work correctly if the version is changed) -->
+<script type='text/javascript'>
+
+	'use strict';
+
+	// This function returns the number of games released by day
+
+	function getReleases(games, frequency){
+
+		// First, an array containing all the dates in the dataset is created (the date information in the dataset is used to build Javascript Date objects)
+
+		let dates = Array();
+
+		// If the level of granularity is the day, the Date objects are computed with the day, month and year in the dataset
+		// Note : 1 is substracted to the month number because the month in the Date object geos from 0 (January) to 11 (December)
+
+		if(frequency == 'day'){
+			for(let game of games){
+				dates.push(new Date(parseInt(game.release_year), parseInt(game.release_month) - 1, parseInt(game.release_day)));
+			}
+		}
+
+		// If the level of granularity is the month, the Date objects are computed with the month and year in the dataset. The day is set to 15
+
+		else if(frequency == 'month'){
+			for(let game of games){
+				dates.push(new Date(parseInt(game.release_year), parseInt(game.release_month) - 1, 15));
+			}
+		}
+
+		// If the level of granularity is the year, the Date objects are computed with the year in the dataset. The day is set to 15 and the month to 7 (which represents June in the Date object)
+
+		else if(frequency == 'year'){
+			for(let game of games){
+				dates.push(new Date(parseInt(game.release_year), 7, 15));
+			}
+		}
+
+		// getCounts returns the number of releases per date
+		// temp is an object in the form of {date_1 : releases_1, date_2 : releases_2, date_3, releases_3, ...}
+
+		let temp = getCounts(dates);
+
+		// entries will contain the date/number of releases pairs
+
+		let entries = Array();
+
+		let keys = Object.keys(temp);   // keys is an array containing the dates : [date_1, date_2, date3, ...]
+		let values = Object.values(temp);   // values is an array containing the releases : [releases_2, date_3, releases_3, ...]
+
+		// For each date, an entry is created, containing the date and the number of releases
+
+		for(let i = 0; i < keys.length; i++){
+			entries.push({release : new Date(keys[i]), games : values[i]});
+		}
+
+		// The entries are sorted by chronological order for correct display on the line chart
+
+		return entries.sort(function(a, b){
+			return a.release - b.release;
+		});
+	}
+
+	// CSV data is loaded
+
+	d3.csv('ign.csv', function(games){   // The code in the function is executed only when the data is loaded. All code requiring that the data is fully loaded shoud come here
+
+		console.log(games);
+
+		// By default, a line chart data displaying the number of releases per year is displayed
+
+		drawLineChart(getReleases(games, 'year'));
+
+		d3.selectAll('button')   // Selection of all the buttons
+			.on('click', function(){   // Behavior when a button is clicked
+				drawLineChart(getReleases(games, this.id));   // When a button is clicked, a line chart is displayed. The button id tells if the line chart should show releases by day, month or year
+			});
+
+	});
+
+	// This function returns the counts of elements in an array
+	// The result is an object of the form {element_1 : count, element_2 : count, ...}
+	// For example, ['sugar', 'milk', 'milk', 'sugar', 'milk'] returns {'sugar' : 2, 'milk' : 3}
+
+	function getCounts(array){
+		return array.reduce(function(prev, next){
+			prev[next] = (prev[next] + 1) || 1;
+			return prev;
+			}, {}
+		);
+	}
+
+	//This function shows a line chart representing the dataset data
+
+	function drawLineChart(data){
+
+		// The inside of the element that has the id linechart is removed. Basically, if their was any element inside the linechart svg, they are scrapped off
+		// This allows to remove the previous line chart if the function is called with a different dataset
+
+		document.getElementById('linechart').innerHTML = '';
+
+		// The margins are defined. A bigger margin is defined for the bottom and the left because space needs to be saved for the axis labels
+
+		let margin = {top: 20, right: 20, bottom: 70, left: 60};
+
+		// The width and height letiables are declared using the dimensions of the linechart svg, but margins are substracted
+		// document.getElementById('linechart').getBoundingClientRect() returns the bounding box of the linechart element
+
+		let width = document.getElementById('linechart').getBoundingClientRect().width - margin.left - margin.right;
+		let height = document.getElementById('linechart').getBoundingClientRect().height - margin.top - margin.bottom;
+
+		// x is the scale on which the data will be represented on the horizontal axis. The scale is time, as the data for the x axis is a list of dates
+
+		let x = d3.time.scale()
+			.range([0, width]);   // The allocated space for the line goes from the start to the end of the x axis. This defines the range of the scale
+
+		// The domain of the x axis is defined. It consists of the time span covered by the dates in the dataset
+
+		x.domain(d3.extent(data, function(d){   // This returns the time span covered by the dates in the dataset. This is the domain of the scale
+			return d.release;
+		}));
+
+		// y is the scale on which the data will be represented on the vertical axis. The scale is linear, as the data for the y axis is numbers
+
+		let y = d3.scale.linear()
+			.range([height, 0]);   // The allocated space for the line goes from the start to the end of the y axis. This defines the range of the scale
+
+		// The domain of the y axis is defined. It goes from 0 to the greatest number of releases for a given date in the dataset
+
+		y.domain([0, d3.max(data, function(d){   // This returns the maximum (d3.max) number encountered after keeping only the number of releases from the dataset. This defines the domain of the scale
+			return d.games;
+		})]);
+
+		// xAxis is the horizontal axis
+
+		let xAxis = d3.svg.axis()
+			.scale(x)   // The scale x defined earlier is assigned to the axis
+			.orient('bottom');   // the labels of the axis ticks are shown on the bottom of the axis 
+
+		// yAxis is the vertical axis
+
+		let yAxis = d3.svg.axis()
+			.scale(y)   // The scale y defined earlier is assigned to the axis
+			.orient('left');   // the labels of the axis ticks are shown on the left of the axis
+
+		// chart is a <g> element that is appended to the linechart svg declared in the HTML code
+		// A <g> element is a group of elements such as circles, rectangles, lines, etc. If an operation needs to be executed on all the elements of a group, it can simply be executed on the g element instead. This is the advantage of g elements
+
+		let chart = d3.select('#linechart')
+			.append('g')   // A g element is appended to the linechart svg. It will contain all the graphical elements of the visualization
+				.attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');   // The g element is moved right by margin.left pixels and down by margin.top pixels
+		
+		// A g element is appended to the chart. It contains all the graphical elements of the x axis.
+
+		chart.append('g')
+				.attr('class', 'x axis')   // The classes x and axis are assigned to the g element. Thus, the g element has the styles defined for x and axis classes in the CSS code
+				.attr('transform', 'translate(0,' + height + ')')   // The origin of the line chart is at the bottom left, but the origin of a SVG element is its top left corner. Thus, the x axis needs to be moved down by height pixels in order to appear at the bottom of the chart
+				.call(xAxis);   // Define that it is the x axis in the g element
+
+		// A g element is appended to the chart. It contains all the graphical elements of the y axis.
+
+		chart.append('g')
+				.attr('class', 'y axis')   // The classes y and axis are assigned to the g element. Thus, the g element has the styles defined for y and axis classes in the CSS code
+				.call(yAxis);   // Define that it is the y axis in the g element
+
+		// line is a function that infers a path from data
+
+		let line = d3.svg.line()
+			.x(function(d){   // Accessor for x coordinates
+				return x(d.release);
+			})
+			.y(function(d){   // Accessor for y coordinates
+				return y(d.games);
+			});
+
+		// The visual element corresponding to the line in the chart is a path
+
+		chart.append('path')
+			.attr('d', line(data))   // The d attribute of a path defines the points through which is goes. These are defined by the path inference function line
+			.attr('fill', 'none')   // Coloration inside the polygon drawn by the path
+			.attr('stroke', 'steelblue')   // Color of the path
+			.style('stroke-width', '1.5px');   // Thickness of the path
+		
+		// A text element is appended to the chart. It contains the label of the x axis
+
+		chart.append('text')						 
+			.attr('transform', 'translate(' + (width / 2) + ' ,' + (height + margin.top + 30) + ')')   // The label is translated rightwards by half the width of the chart (thus, it will appear at the middle)
+			.style('text-anchor', 'middle')   // The label is at the middle (without this line, it would be the origin of the text element that would be at the middle of the chart. The label would not be exactly centered)
+			.text('Date');   // Label
+
+		// A text element is appended to the chart. It contains the label of the y axis
+
+		chart.append('text')
+			.attr('transform', 'rotate(-90)')   // The label is rotated by -90 degrees in order to be written along the y axis
+			.attr('y', 0 - margin.left)   // The element was rotated by -90 degrees -> attention to the coordinates to translate
+			.attr('x', 0 - (height / 2))
+			.attr('dy', '1em')   
+			.style('text-anchor', 'middle')   // The label is at the middle (without this line, it would be the origin of the text element that would be at the middle of the chart. The label would not be exactly centered)
+			.text('Games released');   // Label
+
+	}
+
+</script>
