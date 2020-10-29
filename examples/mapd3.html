@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>MAP - MB + D3</title>   <!-- Set the title of the page here -->
+		<style type="text/css">   /* The CSS code goes here */
+
+			/* CSS code for the element that has the id map */
+
+			#map { 
+				width: 1000px;   /* Dimensions of the map element */
+				height: 600px;
+			}
+
+			/* CSS code for the elements that have the class dot */
+
+			.dot {
+				cursor: default;   /* Changes the look of the cursor when it hovers the element */
+				fill: #0082a3;   /* Color */
+				fill-opacity: 0.6;   /* Transparency, from 0 (invisible) to 1 (opaque) */
+				stroke: #004d60;   /* Border color */
+				stroke-width: 1;   /* Border width in pixels */
+			}
+
+			/* CSS code for the element that has the id points_container */
+
+			#points_container {
+				position: absolute;
+				width: 100%;   /* Width of the element is 100% of the width of its parent */
+				height: 100%;   /* Height of the element is 100% of the width of its parent */
+			}
+
+		</style>
+		<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.42.2/mapbox-gl.css' rel='stylesheet'></link>   <!-- Import of the styles from Mapbox -->
+	</head>
+	<body>
+
+		<div id="map"></div>   <!-- Working example - Map with points -->
+
+	</body>
+</html>
+<script src="https://d3js.org/d3.v3.min.js"></script>   <!-- d3.js import -->
+<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.42.2/mapbox-gl.js'></script>   <!-- Mapbox library import -->
+<script type="text/javascript">
+
+	// An API access token is required to use the API. Replace with your own (see how to get an API token in the slides). You can request your own on the Mapbox website
+
+	mapboxgl.accessToken = "pk.eyJ1IjoiYWNsYXJpbnZhbCIsImEiOiJjam1wY25sNGsxOXZqM2twa2hyaG0wbDF6In0.40Fo_wy_iUZGNL5j_CIXdA";
+
+	// A new map is created
+
+	const map = new mapboxgl.Map({
+				container: "map",   // ID of the element that contains the map
+				style: "mapbox://styles/mapbox/light-v9",   // Type of map (other styles include basic-v9, streets-v9, dark-v9, satellite-v9 and bright-v9, try them out to see which one is best for your map)
+				center: [4.35, 50.85],   // Coordinates of the center of the map [longitude, latitude]
+				zoom: 1   // Initial zoom level (1 is the furthest zoom, it shows the whole world)
+	});
+		
+	// Add zoom and rotation controls to the map
+	
+	map.addControl(new mapboxgl.NavigationControl({
+		position: "top-left"}   // The controls appear at the top left
+	));
+
+	// container is the overlay of the map. The overlay will contain everything we add to the map
+
+	const container = map.getCanvasContainer();
+
+	// An svg is appended to the container. It will contain the visual elements
+
+	const svg = d3.select(container)
+		.append("svg")
+			.attr("id", "points_container");   // The id of the svg is points_container
+
+	d3.csv("museums.csv", function(data){   // The code in the function is executed only when the data is loaded. All code requiring that the data is fully loaded shoud come here
+
+		console.log(data);   // Always check if the data was correctly loaded!
+
+		// From this point, the code is different from the Mapbox only example
+
+		// The points contained in data are drawn
+
+		drawPoints(data);
+
+		// A function drawing the points was defined. It can be called again if a different dataset needs to be drawn
+
+		function drawPoints(points){
+
+			// Remove the visual elements previously displayed on the map using brute force
+
+			document.getElementById("points_container").innerHTML = "";
+
+			// dots is the selection holding the points
+
+			let dots = svg.selectAll(".dot")
+				.data(points);
+
+			// For each point, a circle is appended
+
+			dots.enter().append("circle")
+				.attr("class", "dot")   // The appended circles have the class dot
+				.attr("r", 5)   // Radius is 5
+				.append("title")   // A title is added to the circles (when the mouse goes over a circle, some text will show)
+					.text(function(d){   // Text of the mouseover title
+						return d["Museum Name"];   // The text displayed for a circle is the name of museum it represents
+					});
+				
+			// This function renders the points on the map. Basically, it handles the projection of every point
+
+			function render(){
+
+				// Remember that dots is a selection of points. The .attr("cx") and .attr("cy") are executed once for each circle in dots
+
+				dots
+					.attr("cx", function(d){   // Setting the x coordinate of the circle center
+						
+						// 1) Use the Latitude and Longitude to get a point in the Mapbox format (this point has a latitude and longitude)
+						//     ----> new mapboxgl.LngLat(d.Longitude, d.Latitude)
+						// 2) Compute the projection of this point. It has an x and y coordinate in pixels
+						//     ----> map.project(...)
+						// 3) We are setting the x coordinate of the center of the circle -> get the x coordinate of the projection
+						//     ----> map.project(...).x
+
+						return map.project(new mapboxgl.LngLat(d.Longitude, d.Latitude)).x;
+					})
+					.attr("cy", function(d){   // Setting the y coordinate of the circle center
+
+						// 1) Use the Latitude and Longitude to get a point in the Mapbox format (this point has a latitude and longitude)
+						//     ----> new mapboxgl.LngLat(d.Longitude, d.Latitude)
+						// 2) Compute the projection of this point. It has an x and y coordinate in pixels
+						//     ----> map.project(...)
+						// 3) We are setting the y coordinate of the center of the circle -> get the y coordinate of the projection
+						//     ----> map.project(...).y
+
+						return map.project(new mapboxgl.LngLat(d.Longitude, d.Latitude)).y;
+					});
+					
+			}
+
+			// render() is called when the event viewreset of the map is triggered
+			// viewreset means that the content of the layer needs to be redrawn (e.g. zoom)
+
+			map.on("viewreset", render);
+
+			// render() is also called when the map is moved (navigation without zoom)
+
+			map.on("move", render);
+
+			// render() is called once for initial placement of the points
+
+			render();
+		}
+	});
+
+</script>

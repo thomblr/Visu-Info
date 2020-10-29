@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>MAP - MB</title>   <!-- Set the title of the page here -->
+		<style type="text/css">   /* The CSS code goes here */
+
+			/* CSS code for the element that has the id map */
+
+			#map { 
+				width: 1000px;   /* Dimensions of the map element */
+				height: 600px;
+			}
+
+			/* CSS code for the elements that have the class dot */
+
+			.dot {
+				cursor: default;   /* Changes the look of the cursor when it hovers the element */
+				fill: #0082a3;   /* Color */
+				fill-opacity: 0.6;   /* Transparency, from 0 (invisible) to 1 (opaque) */
+				stroke: #004d60;   /* Border color */
+				stroke-width: 1;   /* Border width in pixels */
+			}
+
+			/* CSS code for the element that has the id points_container */
+
+			#points_container {
+				width: 100%;   /* Width of the element is 100% of the width of its parent */
+				height: 100%;   /* Height of the element is 100% of the width of its parent */
+			}
+
+		</style>
+		<link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.42.2/mapbox-gl.css' rel='stylesheet'></link>   <!-- Import of the styles from Mapbox -->
+	</head>
+	<body>
+
+		<div id="map"></div>   <!-- Working example - Map with points -->
+
+	</body>
+</html>
+<script src="https://d3js.org/d3.v3.min.js"></script>   <!-- d3.js import -->
+<script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.42.2/mapbox-gl.js'></script>   <!-- Mapbox library import -->
+<script type="text/javascript">
+
+	// This function converts points as found in the dataset into features following the GeoJSON standard
+	
+	function getGeoJSON(points){
+
+		let features = Array();
+
+		for(let i = 0; i < points.length; i++){
+
+			// For every point, a feature is created and added to the array features
+
+			let point = {type : "Feature", 
+							geometry : {   // The geometry for a point contains the type (which is Point) and the coordinates
+								type : "Point",
+								coordinates : [points[i].Longitude, points[i].Latitude]   // The longitude and latitude must be specified longitude first, which is a little confusing as latitude usually comes first
+							},
+							properties : { // The properties contain any other information on the point
+								name : points[i]["Museum Name"]   // In this case, I have specified the name but you can add any property you wish
+							}
+						}
+
+			features.push(point);
+		}
+
+		return features;
+	}
+
+	// An API access token is required to use the API. Replace with your own. You can request your own on the Mapbox website
+
+	mapboxgl.accessToken = "pk.eyJ1IjoiYWNsYXJpbnZhbCIsImEiOiJjam1wY25sNGsxOXZqM2twa2hyaG0wbDF6In0.40Fo_wy_iUZGNL5j_CIXdA";
+
+	// A new map is created
+
+	const map = new mapboxgl.Map({
+		container: "map",   // ID of the element that contains the map
+		style: "mapbox://styles/mapbox/light-v9",   // Type of map (other styles include basic-v9, streets-v9, dark-v9, satellite-v9 and bright-v9)
+		center: [4.35, 50.85],   // Coordinates of the center of the map [longitude, latitude]
+		zoom: 1   // Initial zoom level (1 is the furthest zoom)
+	});
+		
+	// Add zoom and rotation controls to the map
+	
+	map.addControl(new mapboxgl.NavigationControl({
+		position: "top-left"}   // The controls appear at the top left
+	));
+
+	// container is the overlay of the map. The overlay will contain everything we add to the map
+
+	const container = map.getCanvasContainer();
+
+	// An svg is appended to the container. It will contain the visual elements
+
+	const svg = d3.select(container)
+		.append("svg")
+			.attr("id", "points_container");   // The id of the svg is points_container
+
+	d3.csv("museums.csv", function(data){   // The code in the function is executed only when the data is loaded. All code requiring that the data is fully loaded shoud come here
+
+		console.log(data);   // Always check if the data was correctly loaded!
+
+		// Wait before map is loaded before adding the layer to it
+
+		map.on("load", function(){
+
+			// The points in data are transformed in features using the function defined earlier
+			// The features are wrapped inside a feature collection
+
+			let featurecollection = {type : "FeatureCollection", features : getGeoJSON(data)};
+
+			// A layer holding the visual elements is added to the map
+
+			map.addLayer({
+				id: "museums",   // Layer id
+				type: "circle",   // Type of the visual elements representing the museums
+				source: {   // Data
+					type: "geojson",   // Type of data
+					data: featurecollection   // letiable holding the feature collection
+				},
+				paint: {   // Style of the visual elements (circles)
+					"circle-radius": 5,   // Radius
+					"circle-color": "#0082a3",   // Fill color
+					"circle-opacity": 0.6,   // Opacity (0 is transparent, 1 is opaque)
+					"circle-stroke-width": 1,   // Width of the circles border
+					"circle-stroke-color": "#004d60"   // Color of the circles border
+				}
+			});
+		});
+	});
+
+</script>
