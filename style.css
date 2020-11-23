@@ -3,9 +3,29 @@
     padding: 0;
 }
 
+body {
+    background: #70e1f5;  /* fallback for old browsers */
+    background: -webkit-linear-gradient(to right, #ffd194, #70e1f5);  /* Chrome 10-25, Safari 5.1-6 */
+    background: linear-gradient(to right, #ffd194, #70e1f5); /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+
+}
+
 #main-title {
     font-size: 2em;
     font-family: Verdana, sans-serif;
     text-align: center;
     margin-top: 4em;
+    color: #fff;
+    margin-bottom: 100px;
+}
+
+.main-selector {
+    background-color: white;
+    border-radius: 10px;
+    width: 500px;
+    height: 250px;
+    margin: 0 auto;
+    -webkit-box-shadow: 18px 21px 78px -43px rgba(0,0,0,0.68);
+    -moz-box-shadow: 18px 21px 78px -43px rgba(0,0,0,0.68);
+    box-shadow: 18px 21px 78px -43px rgba(0,0,0,0.68);
 }
