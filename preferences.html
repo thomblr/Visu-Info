@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <title>Information Visualization Project</title>
+</head>
+<body>
+    
+    <div class="pref-div shadow-box">
+        <a href="index.html" class="btn-back"><span class="material-icons">navigate_before</span></a>
+
+        <h2>Choix des préférences</h2>
+        <hr>
+        <div class="preferences">
+            <form action="meeting.html" method="post">
+                <div class="form-element">
+                    <label for="age">Age</label>
+                    <select name="age" id="age">
+                        <option value="old">Old</option>
+                    </select>
+                </div>
+
+                <div class="form-element">
+                    <label for="size">Taille</label>
+                    <select name="size" id="size">
+                        <option value="very-small">Très petit</option>
+                        <option value="small">Petit</option>
+                        <option value="medium">Moyen</option>
+                        <option value="large">Grand</option>
+                        <option value="very-large">Très grand</option>
+                    </select>
+                </div>
+
+                <div class="form-element">
+                    <label for="weight">Poids</label>
+                    <select name="weight" id="weight">
+                        <option value="heavy">Heavy</option>
+                    </select>
+                </div>
+
+                <div class="form-element">
+                    <label for="speed">Vitesse</label>
+                    <select name="speed" id="speed">
+                        <option value="quick">Quick</option>
+                    </select>
+                </div>
+
+                <div class="form-element">
+                    <label for="habitat">Habitat</label>
+                    <select name="habitat" id="habitat">
+                        <option value="quick">Quick</option>
+                    </select>
+                </div>
+
+                <div class="form-element">
+                    <label for="regime">Régime alimentaire</label>
+                    <select name="regime" id="regime">
+                        <option value="indifferent">Indifférent</option>
+                        <option value="carnivore">Carnivore</option>
+                        <option value="herbivore">Herbivore</option>
+                    </select>
+                </div>
+                
+                <input type="submit" value="Valider" />
+            </form>
+        </div>
+    </div>
+
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="app.js"></script>
+
+</body>
+</html>

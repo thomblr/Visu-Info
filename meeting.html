@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <script src='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js'></script>
+    <link href='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css' rel='stylesheet' />      
+    <title>Information Visualization Project</title>
+</head>
+<body>
+
+    <div class="main-meeting">
+        <a href="preferences.html" class="btn-back"><span class="material-icons">navigate_before</span></a>
+        
+        <div class="map" id="map">
+
+        </div>
+        <div class="recap shadow-box">
+            <h2>Préférences</h2>
+            <hr>
+        </div>
+        <div class="important-choices shadow-box">
+            <h2>Choix des caractéristiques les plus importantes</h2>
+            <hr>
+        </div>
+    </div>
+
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
