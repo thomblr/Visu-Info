@@ -1,3 +1,5 @@
 .idea/
 examples/
 fossils.ipynb
+*.DS_STORE
+photos/
