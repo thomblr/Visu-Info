@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,16 +10,25 @@
     <link rel="stylesheet" href="style.css">
 
     <script src='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.js'></script>
-    <link href='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css' rel='stylesheet' />      
+    <link href='https://api.mapbox.com/mapbox-gl-js/v1.12.0/mapbox-gl.css' rel='stylesheet' />
     <title>Information Visualization Project</title>
 </head>
+
 <body>
 
     <div class="main-meeting">
-        <a href="preferences.html" class="btn-back"><span class="material-icons">navigate_before</span></a>
-        
+        <a href="index.html" class="btn-back"><span class="material-icons">navigate_before</span></a>
+
+        <label class="label-color" id="color-switch">
+            <div class="toggle">
+              <input class="toggle-state" type="checkbox" name="check" value="check" onclick="toggleColorblind()" />
+              <div class="indicator"></div>
+            </div>
+            <div class="label-text">Colorblind Mode</div>
+        </label>
+
         <div class="map" id="map"></div>
-        
+
         <div class="recap shadow-box">
             <h2>Préférences</h2>
             <hr>
@@ -93,12 +103,14 @@
             </div>
         </div>
         <div class="important-choices shadow-box">
-            <h2>Choix des caractéristiques les plus importantes</h2>
+            <h2>Comparaison des dinosaures</h2>
             <hr>
+            <div id="comparison" class="comparison-box"></div>
         </div>
     </div>
 
     <script src="https://d3js.org/d3.v6.min.js"></script>
     <script src="app.js"></script>
 </body>
+
 </html>
