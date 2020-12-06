@@ -1,7 +1,7 @@
 
 mapboxgl.accessToken = 'pk.eyJ1IjoidGhvbWJsciIsImEiOiJja2dxbmdseTkwNnVpMnlxd2RjcXF2bHd2In0.-nQuV-bVYgtHWJls-534pw';
 
-var map = new mapboxgl.Map({
+const map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/outdoors-v11', // stylesheet location
     center: [4.3528, 50.8466], // starting position [lng, lat]
@@ -202,6 +202,7 @@ d3.json("datasets/dinos.json").then(function(data) {
     console.log(default_points);
     // data.forEach((item, index) => new mapboxgl.Marker().setLngLat([item['longitude'], item['latitude']]).addTo(map));
 });
+
 
 d3.json("datasets/gts_tree.json").then(function(data) {
     // console.log(data[0]);
