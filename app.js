@@ -129,6 +129,7 @@ function updateSelection() {
     let sorted = (mapped.slice(0, 15)).map(function (el) {
         return fossils[el.index];
     });
+    console.log("clear");
     clearHover();
     //showPointsOnMap(fossils);
     showPointsOnMap(sorted);
@@ -268,7 +269,10 @@ map.on("click", 'dinos', (e) => {
         var popupHTML = e.features[0].properties.popup;
     }
 
+    console.log("fr" + popupHTML);
+
     var coordinates = e.features[0].geometry.coordinates.slice();
+    popup.setLngLat(coordinates).setHTML(popupHTML).addTo(map);
     popup.setLngLat(coordinates).setHTML(popupHTML).addTo(map);
 
     if (e.features.length > 0) {
