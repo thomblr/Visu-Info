@@ -260,3 +260,18 @@ form input[type="submit"]:hover {
 .checkbox-container {
   width: 100%;
 }
+
+.preference-header {
+  white-space: nowrap;
+  overflow: auto;
+}
+
+.header-text {
+  display: inline-block;
+  font-size: 15px;
+}
+
+.header-checkbox {
+  display: inline-block;
+  margin-left: 10px;
+}
