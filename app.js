@@ -35,17 +35,17 @@ function getGeoJSON(points) {
         let species = points[i]["species"];
         let n = Math.floor((Math.random() * 3) + 1);
         let picture = `images/${species}/${species}${n}.png`;
+        let percent = percentage(points[i]['distance']);
         let profile = `<div id="dino-${i}">
                             <strong>${points[i]["name"]}</strong>
                             <img src="${picture}" alt="foo" class="avatar">
+                            <p><strong>Affinité: ${percent}%</strong></p>
                             <p>Age: ${points[i]["age"]} Ma</p>
                             <p>Taille: ${points[i]["size"]} m</p>
                             <p>Poids: ${points[i]["weight"]} kg</p>
                             <p>Vitesse: ${points[i]["speed"]} kmh</p>
                             <p>Mail: ${points[i]["mail"]}</p>
                         </div>`;
-
-        let percent = percentage(points[i]['distance']);
         let point = {type : "Feature",
                         geometry : {
                             type : "Point",
@@ -111,41 +111,13 @@ var preference = {
 Return the "distance" between a given dino specified by point and the preferences
 */
 function distanceFromPreference(point) {
-    /*var ddiet;
-    if (preference['diet'] == "indifferent") {
-        ddiet = 0;
-    } else {
-        // NB. false will be interpreted as 0
-        ddiet = preference['diet'] != point['diet'];
-    }
-    var dspecies;
-    if (preference['species'] == 'indifferent') {
-        dspecies = 0;
-    } else {
-        dspecies = preference['species'] != point['species'];
-    }*/
     // Each component is normalized by its maximum theoretical value
     return Math.sqrt(
         (useAge * (preference['age'] - point['age'])/240 )**2
         + (useSize * (preference['size'] - point['size'])/35 )**2
         + (useWeight * (preference['weight'] - point['weight'])/60000 )**2
         + (useSpeed * (preference['speed'] - point['speed'])/110 )**2
-        //+ ddiet
-        //+ dspecies
-        //+ zoneDistance(point)
         );
-}
-
-function zoneDistance(point) {
-    // N.B. When none of the zone checkboxes are ticked, this will return 1
-    if(useLand && point['zone']=="land") {
-        return 0;
-    } else if(useSea && point['zone']=="aquatic") {
-        return 0;
-    } else if(useAir && point['zone']=="air") {
-        return 0;
-    }
-    return 1;
 }
 
 function percentage(distance) {
@@ -379,6 +351,7 @@ d3.json("datasets/dinos.json").then(function (data) {
     console.log(default_points);
 });
 
+
 // Code for displaying the popup when clicking a circle on the map.
 var dinoID = null;
 
@@ -397,13 +370,13 @@ d3.csv("datasets/dinosaurs.csv").then(function(data) {
     speciesSelect.innerHTML = speciesOptions.join();
 });
 
+
 map.on("click", 'dinos', (e) => {
     //map.getCanvas().style.cursor = 'pointer';
     //var dinoName = e.features[0].properties.name;
 
     var popupHTML = null;
     let compProfile = document.getElementById("dino-" + e.features[0].id + "-comp");
-
 
     // Check if the the dino is already in the comparison zone and change the comparison button
     // Not the best way to do that, it's better to update the marker's content after we click on the comparison button 
@@ -416,36 +389,16 @@ map.on("click", 'dinos', (e) => {
 
     let coordinates = e.features[0].geometry.coordinates.slice();
     console.log("fr" + popupHTML);
-
+    //popup.remove();
     popup.setLngLat(coordinates).setHTML(popupHTML).addTo(map);
-    popup.setLngLat(coordinates).setHTML(popupHTML).addTo(map);
-
-    if (e.features.length > 0) {
-        if (dinoID) {
-            map.removeFeatureState({
-                source: "selection",
-                id: dinoID
-            });
-        }
-        dinoID = e.features[0].id;
-
-        map.setFeatureState({
-            source: 'selection',
-            id: dinoID
-        }, {
-            hover: true
-        });
-    }
+    //map.flyTo({center: coordinates});
 });
-
-// map.on("mouseleave", 'dinos', function () {
-//     clearHover();
-// });
 
 
 // Change the cursor to a pointer when the mouse is over the places layer.
 map.on('mouseenter', 'dinos', function (e) {
     map.getCanvas().style.cursor = 'pointer';
+    
     if (e.features.length > 0) {
         if (dinoID) {
             map.removeFeatureState({
@@ -470,6 +423,10 @@ map.on('mouseleave', 'dinos', function () {
     clearHover();
 });
 
+popup.on('mousenter', function() {
+
+})
+
 function clearHover() {
     if (dinoID) {
         map.setFeatureState({
@@ -481,7 +438,7 @@ function clearHover() {
     }
     dinoID = null;
     map.getCanvas().style.cursor = '';
-    popup.remove();
+    //popup.remove();
 }
 
 
