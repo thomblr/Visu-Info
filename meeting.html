@@ -17,7 +17,15 @@
 <body>
 
     <div class="main-meeting">
-        <a href="preferences.html" class="btn-back"><span class="material-icons">navigate_before</span></a>
+        <a href="index.html" class="btn-back"><span class="material-icons">navigate_before</span></a>
+
+        <label class="label-color" id="color-switch">
+            <div class="toggle">
+              <input class="toggle-state" type="checkbox" name="check" value="check" onclick="toggleColorblind()" />
+              <div class="indicator"></div>
+            </div>
+            <div class="label-text">Colorblind Mode</div>
+        </label>
 
         <div class="map" id="map"></div>
 
@@ -74,7 +82,7 @@
         <div class="important-choices shadow-box">
             <h2>Comparaison des dinosaures</h2>
             <hr>
-            <div id="comparison"></div>
+            <div id="comparison" class="comparison-box"></div>
         </div>
     </div>
 

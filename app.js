@@ -9,6 +9,22 @@ var map = new mapboxgl.Map({
     maxZoom: 9
 });
 
+// background: linear-gradient(to right, #ffd194, #70e1f5);
+let colorblind = false;
+function toggleColorblind() {
+    if (colorblind) {
+        document.body.style.background = "linear-gradient(to right, #ffd194, #70e1f5)";
+        document.getElementById('color-switch').style.color = '#394a56';
+        this.map.setPaintProperty('dinos', 'circle-color', ['case', ['boolean', ['feature-state', 'hover'], false], "#aa2222", "#082a03" ]);
+        colorblind = false;
+    } else {
+        document.body.style.background = "linear-gradient(to right, #a80077, #66ff00)";
+        document.getElementById('color-switch').style.color = 'white';
+        this.map.setPaintProperty('dinos', 'circle-color', ['case', ['boolean', ['feature-state', 'hover'], false], "#27FF00", "#000EB7" ]);
+        colorblind = true;
+    }
+}
+
 
 function getGeoJSON(points) {
 
@@ -39,7 +55,7 @@ function getGeoJSON(points) {
                 name: points[i]["name"],
                 distance: points[i]["distance"],
                 popup:
-                    `<div> ${profile} <button onclick='compare("dino-" + ${i})'> Comparer </button> </div>`
+                    `<div> ${profile} <button onclick='compare("dino-" + ${i})' class='compare-button'> Comparer </button> </div>`
             }
         }
         features.push(point);
@@ -50,18 +66,18 @@ function getGeoJSON(points) {
 // Add or remove a dino in the comparison zone
 function compare(dinoNum) {
 
-    let popup = document.getElementById(dinoNum);
+    let popupp = document.getElementById(dinoNum);
     let compProfile = document.getElementById(dinoNum + "-comp");
 
     if (typeof (compProfile) != 'undefined' && compProfile != null) {
         // The profile is already in the comparison zone
         compProfile.remove();
-        popup.nextElementSibling.innerText = "Comparer";
+        popupp.nextElementSibling.innerText = "Comparer";
     } else {
         // We add the profile in the comparison zone
         let comparisonZone = document.getElementById("comparison");
-        popup.nextElementSibling.innerText = "Annuler comparaison";
-        clone = popup.cloneNode(true);
+        popupp.nextElementSibling.innerText = "Annuler comparaison";
+        let clone = popupp.cloneNode(true);
         clone.id += "-comp";
         comparisonZone.appendChild(clone);
     }
@@ -212,8 +228,8 @@ map.on("load", function () {
             ],
             "circle-color": ['case',
                 ['boolean', ['feature-state', 'hover'], false],
-                "#aa2222",
-                "#082a03"
+                colorblind ? "#27FF00" : "#aa2222",
+                colorblind ? "#000EB7" : "#082a03"
             ]
         }
     })
@@ -234,21 +250,7 @@ d3.json("datasets/dinos.json").then(function (data) {
     console.log(fossils)
     default_points = { type: "FeatureCollection", features: getGeoJSON(data) };
     console.log(default_points);
-    // data.forEach((item, index) => new mapboxgl.Marker().setLngLat([item['longitude'], item['latitude']]).addTo(map));
 });
-
-d3.json("datasets/gts_tree.json").then(function (data) {
-    // console.log(data[0]);
-});
-
-d3.csv("datasets/dinosaurs.csv").then(function (data) {
-    // console.log(data[0]);
-});
-
-d3.tsv("datasets/gts.tsv").then(function (data) {
-    // data.forEach((item, index) => console.log(index, item['type']))
-});
-
 
 // Code for displaying the popup when clicking a circle on the map.
 var dinoID = null;
@@ -323,3 +325,6 @@ function clearHover() {
     map.getCanvas().style.cursor = '';
     popup.remove();
 }
+
+
+
