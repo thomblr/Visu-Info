@@ -61,6 +61,7 @@ function compare(dinoNum) {
         let comparisonZone = document.getElementById("comparison");
         popup.nextElementSibling.innerText = "Annuler comparaison";
         clone = popup.cloneNode(true);
+        clone.classList.add("comp");
         clone.id += "-comp";
         comparisonZone.appendChild(clone);
     }
