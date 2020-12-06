@@ -11,11 +11,14 @@ var map = new mapboxgl.Map({
 
 
 function getGeoJSON(points) {
+    const diets = {'carnivorous': 'Carnivore', 'herbivorous': 'Herbivore'};
+    const zones = {'land': 'Terrestre', 'aquatic': 'Aquatique', 'air': 'Volant'};
     let features = Array();
     for(let i = 0; i < points.length; i++) {
         let species = points[i]["species"];
         let n = Math.floor((Math.random() * 3) + 1);
         let picture = `images/${species}/${species}${n}.png`;
+        let percent = percentage(points[i]['distance']);
         let point = {type : "Feature",
                         geometry : {
                             type : "Point",
@@ -24,13 +27,17 @@ function getGeoJSON(points) {
                         properties : {
                             name : points[i]["name"],
                             distance : points[i]["distance"],
+                            percentage: percent,
                             popup : 
                                 `<strong>${points[i]["name"]}</strong>
                                 <img src="${picture}" alt="foo" class="avatar">
+                                <p><strong>Affinité: ${percent}%</strong><p>
                                 <p>Age: ${points[i]["age"]} Ma</p>
                                 <p>Taille: ${points[i]["size"]} m</p>
                                 <p>Poids: ${points[i]["weight"]} kg</p>
-                                <p>Vitesse: ${points[i]["speed"]} kmh</p>`
+                                <p>Vitesse: ${points[i]["speed"]} kmh</p>
+                                <p>Alimentation: ${diets[points[i]['diet']]}</p>
+                                <p>Habitat: ${zones[points[i]['zone']]}</p>`
                         }
                     }
         features.push(point);
@@ -58,28 +65,85 @@ var preference = {
     weight : 100,
     speed : 50,
     diet : "indifferent",
-    zone : "land"
+    species: "indifferent"
 };
 
 /*
 Return the "distance" between a given dino specified by point and the preferences
 */
 function distanceFromPreference(point) {
-    // Each component is normalized
-    var ddiet
+    /*var ddiet;
     if (preference['diet'] == "indifferent") {
         ddiet = 0;
     } else {
         // NB. false will be interpreted as 0
         ddiet = preference['diet'] != point['diet'];
     }
-    return (
-        ((preference['age'] - point['age'])/230 )**2
-        + ((preference['size'] - point['size'])/35 )**2
-        + ((preference['weight'] - point['weight'])/60000 )**2
-        + ((preference['speed'] - point['speed'])/110 )**2
-        + ddiet
+    var dspecies;
+    if (preference['species'] == 'indifferent') {
+        dspecies = 0;
+    } else {
+        dspecies = preference['species'] != point['species'];
+    }*/
+    // Each component is normalized by its maximum theoretical value
+    return Math.sqrt(
+        (useAge * (preference['age'] - point['age'])/240 )**2
+        + (useSize * (preference['size'] - point['size'])/35 )**2
+        + (useWeight * (preference['weight'] - point['weight'])/60000 )**2
+        + (useSpeed * (preference['speed'] - point['speed'])/110 )**2
+        //+ ddiet
+        //+ dspecies
+        //+ zoneDistance(point)
         );
+}
+
+function zoneDistance(point) {
+    // N.B. When none of the zone checkboxes are ticked, this will return 1
+    if(useLand && point['zone']=="land") {
+        return 0;
+    } else if(useSea && point['zone']=="aquatic") {
+        return 0;
+    } else if(useAir && point['zone']=="air") {
+        return 0;
+    }
+    return 1;
+}
+
+function percentage(distance) {
+    // the 3 is for  diet, zone and species, which are always counted in order to avoid dividing by 0.
+    let n = useAge + useSize + useWeight + useSpeed;
+    if (n==0) {
+        return 0;
+    }
+    return Math.round(100*(n-distance)/n);
+}
+
+predDiet = function(dino) {
+    if (preference['diet'] == "indifferent") {
+        return true;
+    } else {
+        return preference['diet'] == dino['diet'];
+    }
+}
+
+predZone = function(dino) {
+    if (useLand && dino['zone']=="land") {
+        return true;
+    } else if (useSea && dino['zone']=="aquatic") {
+        return true;
+    } else if (useAir && dino['zone']=="air") {
+        return true;
+    } else {
+        return false;
+    }
+}
+
+predSpecies = function(dino) {
+    if (preference['species'] == "indifferent") {
+        return true;
+    } else {
+        return preference['species'] == dino['species'];
+    }
 }
 
 /*
@@ -90,16 +154,22 @@ function updateSelection() {
     fossils.forEach(function(point, index) {
         fossils[index]['distance'] = distanceFromPreference(point);
     });
-    var mapped = fossils.map(function(point, i) {
+    let filtered = fossils.filter(
+        (dino) => predDiet(dino) && predZone(dino) && predSpecies(dino)
+    );
+    let mapped = filtered.map(function(point, i) {
         return { index: i, value : point['distance']};
     });
     mapped.sort(function(a,b) {return (a.value - b.value);});
     let sorted = (mapped.slice(0,15)).map(function(el) {
-        return fossils[el.index];
+        return filtered[el.index];
     });
     clearHover();
-    //showPointsOnMap(fossils);
-    showPointsOnMap(sorted);
+    if (showAllDinos) {
+        showPointsOnMap(filtered);
+    } else {
+        showPointsOnMap(sorted);
+    }
     map.flyTo({
         center: [
             sorted[0]['longitude'],
@@ -116,6 +186,8 @@ closeOnClick: false
 
 // Code for the sliders
 
+var ageCheckbox = document.getElementById("ageCheckbox");
+var useAge = true;
 var ageSlider = document.getElementById("ageSlider");
 var ageLabel = document.getElementById("ageLabel");
 ageSlider.oninput = function() {
@@ -123,7 +195,13 @@ ageSlider.oninput = function() {
     preference['age'] = parseInt(this.value,10);
     updateSelection();
 }
+ageCheckbox.onclick = function() {
+    useAge = this.checked;
+    updateSelection();
+}
 
+var sizeCheckbox = document.getElementById("sizeCheckbox");
+var useSize = true;
 var sizeSlider = document.getElementById("sizeSlider");
 var sizeLabel = document.getElementById("sizeLabel")
 sizeSlider.oninput = function() {
@@ -131,15 +209,27 @@ sizeSlider.oninput = function() {
     preference['size'] = parseInt(this.value,10);
     updateSelection();
 }
+sizeCheckbox.onclick = function() {
+    useSize = this.checked;
+    updateSelection();
+}
 
+var weightCheckbox = document.getElementById("weightCheckbox");
+var useWeight = true;
 var weightSlider = document.getElementById("weightSlider");
 var weightLabel = document.getElementById("weightLabel");
 weightSlider.oninput = function() {
     weightLabel.innerHTML = this.value + " kg";
     preference['weight'] = parseInt(this.value,10);
     updateSelection();
-} 
+}
+weightCheckbox.onclick = function() {
+    useWeight = this.checked;
+    updateSelection();
+}
 
+var speedCheckbox = document.getElementById("speedCheckbox");
+var useSpeed = true;
 var speedSlider = document.getElementById("speedSlider");
 var speedLabel = document.getElementById("speedLabel");
 speedSlider.oninput = function() {
@@ -147,6 +237,11 @@ speedSlider.oninput = function() {
     preference['speed'] = parseInt(this.value,10);
     updateSelection();
 }
+speedCheckbox.onclick = function() {
+    useSpeed = this.checked;
+    updateSelection();
+}
+
 
 var dietSlider = document.getElementById("dietSlider");
 var dietLabel = document.getElementById("dietLabel");
@@ -155,6 +250,43 @@ dietSlider.oninput = function() {
     const values = ["carnivorous", "indifferent", "herbivorous"];
     dietLabel.innerHTML = labels[parseInt(this.value)];
     preference['diet'] = values[parseInt(this.value)];
+    updateSelection();
+}
+
+var landCheckbox = document.getElementById("landCheckbox");
+var useLand = true;
+landCheckbox.onclick = function() {
+    useLand = this.checked;
+    updateSelection();
+}
+var seaCheckbox = document.getElementById("seaCheckbox");
+var useSea = true;
+seaCheckbox.onclick = function() {
+    useSea = this.checked;
+    updateSelection();
+}
+var airCheckbox = document.getElementById("airCheckbox");
+var useAir = true;
+airCheckbox.onclick = function() {
+    useAir = this.checked;
+    updateSelection();
+}
+
+const species = ["indifférent"];
+var speciesSelect = document.getElementById('species');
+speciesSelect.onchange = function() {
+    if(this.value == "indifférent") {
+        preference['species'] = "indifferent";
+    } else {
+        preference['species'] = this.value;
+    }
+    updateSelection();
+}
+
+var showAllDinosCheckbox = document.getElementById('showAllDinos');
+var showAllDinos = false;
+showAllDinosCheckbox.onclick = function() {
+    showAllDinos = this.checked;
     updateSelection();
 }
 
@@ -167,14 +299,14 @@ map.on("load", function(){
         type : "circle",
         source : 'selection',
         paint : {
-            "circle-opacity": ['^', 2, ['*', -5, ['get', 'distance']]],
+            "circle-opacity": ['*', 0.7, ['^', 2, ['*', -5, ['get', 'distance']]]],
             "circle-stroke-width": 1,
             "circle-stroke-color": "#000",
             'circle-radius': ['case',
                 // The radius of the circle decreases exponentially with the distance to the preference, with a maximum of 10 (20 if hovered)
                 ['boolean', ['feature-state', 'hover'], false],
-                    ['+', 1, ['*', 20, ['^', 2, ['*', -4, ['get', 'distance']]]]],
-                    ['+', 1, ['*', 10, ['^', 2, ['*', -4, ['get', 'distance']]]]]
+                    ['+', 2, ['*', 20, ['^', 2, ['*', -4, ['get', 'distance']]]]],
+                    ['+', 2, ['*', 10, ['^', 2, ['*', -4, ['get', 'distance']]]]]
             ],
             "circle-color": ['case',
                 ['boolean', ['feature-state', 'hover'], false],
@@ -207,8 +339,19 @@ d3.json("datasets/gts_tree.json").then(function(data) {
     // console.log(data[0]);
 });
 
+function capitalize(string) {
+    return string.replace(/^\w/, (c) => c.toUpperCase());
+}
+
 d3.csv("datasets/dinosaurs.csv").then(function(data) {
-    // console.log(data[0]);
+    console.log(data);
+    data.forEach(function(item) {
+        species.push(item['dinosaur']);
+    })
+    console.log(species);
+    let speciesOptions = species.map(
+        (value) => `<option value="${value}">${capitalize(value)}</option>`);
+    speciesSelect.innerHTML = speciesOptions.join();
 });
 
 d3.tsv("datasets/gts.tsv").then(function(data) {
@@ -223,8 +366,8 @@ map.on("mousemove", 'dinos', (e) => {
     map.getCanvas().style.cursor = 'pointer';
 
     //var dinoName = e.features[0].properties.name;
-    var popupHTML = e.features[0].properties.popup;
-    var coordinates = e.features[0].geometry.coordinates.slice();
+    let popupHTML = e.features[0].properties.popup;
+    let coordinates = e.features[0].geometry.coordinates.slice();
 
     popup.setLngLat(coordinates).setHTML(popupHTML).addTo(map);
 
