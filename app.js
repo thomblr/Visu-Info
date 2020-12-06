@@ -15,12 +15,44 @@ function toggleColorblind() {
     if (colorblind) {
         document.body.style.background = "linear-gradient(to right, #ffd194, #70e1f5)";
         document.getElementById('color-switch').style.color = '#394a56';
-        this.map.setPaintProperty('dinos', 'circle-color', ['case', ['boolean', ['feature-state', 'hover'], false], "#aa2222", "#082a03" ]);
+        this.map.setPaintProperty('dinos', 'circle-color', 
+            ['case',
+                ['boolean', ['feature-state', 'hover'], false],
+                [
+                    'interpolate', ['linear'],
+                    ['get', 'percentage'],
+                    0, "#fee6ce",
+                    100, "#e6550d"
+                ],
+                [
+                    'interpolate', ['linear'],
+                    ['get', 'percentage'],
+                    0, "#deebf7",
+                    100, "#3182bd"
+                ]
+            ]
+        );
         colorblind = false;
     } else {
-        document.body.style.background = "linear-gradient(to right, #a80077, #66ff00)";
+        document.body.style.background = "linear-gradient(to right, #de77ae, #7fbc41)";
         document.getElementById('color-switch').style.color = 'white';
-        this.map.setPaintProperty('dinos', 'circle-color', ['case', ['boolean', ['feature-state', 'hover'], false], "#27FF00", "#000EB7" ]);
+        this.map.setPaintProperty('dinos', 'circle-color', 
+            ['case',
+                ['boolean', ['feature-state', 'hover'], false],
+                [
+                    'interpolate', ['linear'],
+                    ['get', 'percentage'],
+                    0, "#f7f7f7",
+                    100, "#c51b7d"
+                ],
+                [
+                    'interpolate', ['linear'],
+                    ['get', 'percentage'],
+                    0, "#f7f7f7",
+                    100, "#4d9221"
+                ]
+            ]
+        );
         colorblind = true;
     }
 }
@@ -126,7 +158,7 @@ function percentage(distance) {
     if (n==0) {
         return 0;
     }
-    return Math.round(100* ((n-distance)/n )**2 );
+    return Math.round(100* ((n-distance)/n )**4 );
     //return 2 ** (-4*distance);
 }
 
@@ -431,10 +463,6 @@ map.on('mouseleave', 'dinos', function () {
     map.getCanvas().style.cursor = '';
     clearHover();
 });
-
-popup.on('mousenter', function() {
-
-})
 
 function clearHover() {
     if (dinoID) {
