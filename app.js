@@ -9,7 +9,6 @@ const map = new mapboxgl.Map({
     maxZoom: 9
 });
 
-
 function getGeoJSON(points) {
     let features = Array();
     for(let i = 0; i < points.length; i++) {
@@ -201,6 +200,32 @@ d3.json("datasets/dinos.json").then(function(data) {
     default_points = {type: "FeatureCollection", features: getGeoJSON(data)};
     console.log(default_points);
     // data.forEach((item, index) => new mapboxgl.Marker().setLngLat([item['longitude'], item['latitude']]).addTo(map));
+
+    map.addControl(new mapboxgl.NavigationControl({
+        position: "top-left" // The controls appear at the top left
+    }
+));
+
+const features = Array();
+
+d3.json("datasets/fossils.json").then(function(data) {
+    for(let i = 0; i < data.length; i++) {
+        let point = {
+            type : "Feature",
+            geometry : {
+                type : "Point",
+                coordinates : [data[i].longitude, data[i].latitude],
+            },
+            properties : {
+                name : data[i].name,
+            }
+        }
+        features.push(point);
+    }
+
+    //data.forEach((item, index) => new mapboxgl.Marker().setLngLat([item['longitude'], item['latitude']]).addTo(map));
+});
+
 });
 
 
