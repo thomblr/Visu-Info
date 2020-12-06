@@ -5,7 +5,7 @@ var map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/outdoors-v11', // stylesheet location
     center: [4.3528, 50.8466], // starting position [lng, lat]
-    zoom: 2, // starting zoom
+    zoom: 0.5, // starting zoom
     maxZoom: 9
 });
 
@@ -126,7 +126,8 @@ function percentage(distance) {
     if (n==0) {
         return 0;
     }
-    return Math.round(100*(n-distance)/n);
+    return Math.round(100* ((n-distance)/n )**2 );
+    //return 2 ** (-4*distance);
 }
 
 predDiet = function(dino) {
@@ -165,7 +166,7 @@ function updateSelection() {
     // Clear the comparison zone
     document.getElementById("comparison").innerHTML = '';
 
-    console.log(preference);
+    //console.log(preference);
     fossils.forEach(function (point, index) {
         fossils[index]['distance'] = distanceFromPreference(point);
     });
@@ -180,7 +181,7 @@ function updateSelection() {
         return filtered[el.index];
     });
     
-    console.log("clear");
+    //console.log("clear");
     clearHover();
     if (showAllDinos) {
         showPointsOnMap(filtered);
@@ -316,19 +317,29 @@ map.on("load", function () {
         type : "circle",
         source : 'selection',
         paint : {
-            "circle-opacity": ['*', 0.7, ['^', 2, ['*', -5, ['get', 'distance']]]],
+            "circle-opacity": ['*', 0.9, ['^', 2, ['*', -2, ['get', 'distance']]]],
             "circle-stroke-width": 1,
             "circle-stroke-color": "#000",
             'circle-radius': ['case',
                 // The radius of the circle decreases exponentially with the distance to the preference, with a maximum of 10 (20 if hovered)
                 ['boolean', ['feature-state', 'hover'], false],
-                    ['+', 2, ['*', 20, ['^', 2, ['*', -4, ['get', 'distance']]]]],
-                    ['+', 2, ['*', 10, ['^', 2, ['*', -4, ['get', 'distance']]]]]
+                    ['+', 2, ['*', 0.1, ['get', 'percentage']]],
+                    ['+', 2, ['*', 0.05, ['get', 'percentage']]]
             ],
             "circle-color": ['case',
                 ['boolean', ['feature-state', 'hover'], false],
-                colorblind ? "#27FF00" : "#aa2222",
-                colorblind ? "#000EB7" : "#082a03"
+                [
+                    'interpolate', ['linear'],
+                    ['get', 'percentage'],
+                    0, "#fee6ce",
+                    100, "#e6550d"
+                ],
+                [
+                    'interpolate', ['linear'],
+                    ['get', 'percentage'],
+                    0, "#deebf7",
+                    100, "#3182bd"
+                ]
             ]
         }
     })
@@ -358,7 +369,7 @@ var dinoID = null;
 function capitalize(string) {
     return string.replace(/^\w/, (c) => c.toUpperCase());
 }
-
+// Get the name of all the species in the dataset and add them as option to the species selector
 d3.csv("datasets/dinosaurs.csv").then(function(data) {
     console.log(data);
     data.forEach(function(item) {
@@ -372,15 +383,13 @@ d3.csv("datasets/dinosaurs.csv").then(function(data) {
 
 
 map.on("click", 'dinos', (e) => {
-    //map.getCanvas().style.cursor = 'pointer';
-    //var dinoName = e.features[0].properties.name;
-
+    // I don't think this is the right way to do this. It's very hacky.
+    // - a worried maintainer
     var popupHTML = null;
     let compProfile = document.getElementById("dino-" + e.features[0].id + "-comp");
 
     // Check if the the dino is already in the comparison zone and change the comparison button
     // Not the best way to do that, it's better to update the marker's content after we click on the comparison button 
-
     if (typeof (compProfile) != 'undefined' && compProfile != null) {
         popupHTML = e.features[0].properties.popup.replace('Comparer', 'Annuler Comparaison');
     } else {
@@ -388,7 +397,7 @@ map.on("click", 'dinos', (e) => {
     }
 
     let coordinates = e.features[0].geometry.coordinates.slice();
-    console.log("fr" + popupHTML);
+    //console.log("fr" + popupHTML);
     //popup.remove();
     popup.setLngLat(coordinates).setHTML(popupHTML).addTo(map);
     //map.flyTo({center: coordinates});

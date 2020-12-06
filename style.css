@@ -178,7 +178,7 @@ body {
   appearance: none;
   width: 25px; /* Set a specific slider handle width */
   height: 25px; /* Slider handle height */
-  background: #4CAF50; /* Green background */
+  background:  #185964; /* Green background */
   cursor: pointer; /* Cursor on hover */
   border-radius: 50%;
 }
@@ -186,7 +186,7 @@ body {
 .slider::-moz-range-thumb {
   width: 25px; /* Set a specific slider handle width */
   height: 25px; /* Slider handle height */
-  background: #4CAF50; /* Green background */
+  background:  #185964; /* Green background */
   cursor: pointer; /* Cursor on hover */
   border-radius: 50%;
 }
@@ -208,11 +208,12 @@ body {
 .header-checkbox {
   display: inline-block;
   margin-left: 10px;
+  color: #185964;
 }
 
 .compare-button {
   border-radius: 10px;
-  background-color: #1d7691;
+  background-color: #185964;
   color: white;
   width: 140px;
   height: 25px;
