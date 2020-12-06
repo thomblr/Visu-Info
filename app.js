@@ -421,7 +421,6 @@ map.on("click", 'dinos', (e) => {
     popup.setLngLat(coordinates).setHTML(popupHTML).addTo(map);
 
     if (e.features.length > 0) {
-
         if (dinoID) {
             map.removeFeatureState({
                 source: "selection",
@@ -445,13 +444,30 @@ map.on("click", 'dinos', (e) => {
 
 
 // Change the cursor to a pointer when the mouse is over the places layer.
-map.on('mouseenter', 'dinos', function () {
+map.on('mouseenter', 'dinos', function (e) {
     map.getCanvas().style.cursor = 'pointer';
+    if (e.features.length > 0) {
+        if (dinoID) {
+            map.removeFeatureState({
+                source: "selection",
+                id: dinoID
+            });
+        }
+        dinoID = e.features[0].id;
+
+        map.setFeatureState({
+            source: 'selection',
+            id: dinoID
+        }, {
+            hover: true
+        });
+    }
 });
 
 // Change it back to a pointer when it leaves.
 map.on('mouseleave', 'dinos', function () {
     map.getCanvas().style.cursor = '';
+    clearHover();
 });
 
 function clearHover() {
