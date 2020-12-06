@@ -11,36 +11,63 @@ var map = new mapboxgl.Map({
 
 
 function getGeoJSON(points) {
+
     let features = Array();
-    for(let i = 0; i < points.length; i++) {
+    for (let i = 0; i < points.length; i++) {
+
         let species = points[i]["species"];
         let n = Math.floor((Math.random() * 3) + 1);
         let picture = `images/${species}/${species}${n}.png`;
-        let point = {type : "Feature",
-                        geometry : {
-                            type : "Point",
-                            coordinates : [points[i]["longitude"], points[i]["latitude"]]
-                        },
-                        properties : {
-                            name : points[i]["name"],
-                            distance : points[i]["distance"],
-                            popup : 
-                                `<strong>${points[i]["name"]}</strong>
-                                <img src="${picture}" alt="foo" class="avatar">
-                                <p>Age: ${points[i]["age"]} Ma</p>
-                                <p>Taille: ${points[i]["size"]} m</p>
-                                <p>Poids: ${points[i]["weight"]} kg</p>
-                                <p>Vitesse: ${points[i]["speed"]} kmh</p>`
-                        }
-                    }
+        let profile = `<div id="dino-${i}">
+                            <strong>${points[i]["name"]}</strong>
+                            <img src="${picture}" alt="foo" class="avatar">
+                            <p>Age: ${points[i]["age"]} Ma</p>
+                            <p>Taille: ${points[i]["size"]} m</p>
+                            <p>Poids: ${points[i]["weight"]} kg</p>
+                            <p>Vitesse: ${points[i]["speed"]} kmh</p>
+                        </div>`;
+
+
+        let point = {
+            type: "Feature",
+            geometry: {
+                type: "Point",
+                coordinates: [points[i]["longitude"], points[i]["latitude"]]
+            },
+            properties: {
+                name: points[i]["name"],
+                distance: points[i]["distance"],
+                popup:
+                    `<div> ${profile} <button onclick='compare("dino-" + ${i})'> Comparer </button> </div>`
+            }
+        }
         features.push(point);
     }
     return features;
 }
 
+// Add or remove a dino in the comparison zone
+function compare(dinoNum) {
+
+    let popup = document.getElementById(dinoNum);
+    let compProfile = document.getElementById(dinoNum + "-comp");
+
+    if (typeof (compProfile) != 'undefined' && compProfile != null) {
+        // The profile is already in the comparison zone
+        compProfile.remove();
+        popup.nextElementSibling.innerText = "Comparer";
+    } else {
+        // We add the profile in the comparison zone
+        let comparisonZone = document.getElementById("comparison");
+        popup.nextElementSibling.innerText = "Annuler comparaison";
+        clone = popup.cloneNode(true);
+        clone.id += "-comp";
+        comparisonZone.appendChild(clone);
+    }
+}
+
 function showPointsOnMap(points) {
-    console.log(points);
-    let featurecollection = {type : "FeatureCollection", features : getGeoJSON(points)};
+    let featurecollection = { type: "FeatureCollection", features: getGeoJSON(points) };
     map.getSource('selection').setData(featurecollection);
 }
 
@@ -48,17 +75,17 @@ const container = map.getCanvasContainer();
 
 const svg = d3.select(container)
     .append("svg")
-        .attr("id", "points_container");
+    .attr("id", "points_container");
 
 var fossils;
 var default_points;
 var preference = {
-    age : 70,
-    size : 10,
-    weight : 100,
-    speed : 50,
-    diet : "indifferent",
-    zone : "land"
+    age: 70,
+    size: 10,
+    weight: 100,
+    speed: 50,
+    diet: "indifferent",
+    zone: "land"
 };
 
 /*
@@ -74,27 +101,31 @@ function distanceFromPreference(point) {
         ddiet = preference['diet'] != point['diet'];
     }
     return (
-        ((preference['age'] - point['age'])/230 )**2
-        + ((preference['size'] - point['size'])/35 )**2
-        + ((preference['weight'] - point['weight'])/60000 )**2
-        + ((preference['speed'] - point['speed'])/110 )**2
+        ((preference['age'] - point['age']) / 230) ** 2
+        + ((preference['size'] - point['size']) / 35) ** 2
+        + ((preference['weight'] - point['weight']) / 60000) ** 2
+        + ((preference['speed'] - point['speed']) / 110) ** 2
         + ddiet
-        );
+    );
 }
 
 /*
 Update the points shown on map only showing the 15 closest points to the preference and fly to the closest one.
 */
 function updateSelection() {
+
+    // Clear the comparison zone
+    document.getElementById("comparison").innerHTML = '';
+
     console.log(preference);
-    fossils.forEach(function(point, index) {
+    fossils.forEach(function (point, index) {
         fossils[index]['distance'] = distanceFromPreference(point);
     });
-    var mapped = fossils.map(function(point, i) {
-        return { index: i, value : point['distance']};
+    var mapped = fossils.map(function (point, i) {
+        return { index: i, value: point['distance'] };
     });
-    mapped.sort(function(a,b) {return (a.value - b.value);});
-    let sorted = (mapped.slice(0,15)).map(function(el) {
+    mapped.sort(function (a, b) { return (a.value - b.value); });
+    let sorted = (mapped.slice(0, 15)).map(function (el) {
         return fossils[el.index];
     });
     clearHover();
@@ -110,47 +141,47 @@ function updateSelection() {
 }
 
 var popup = new mapboxgl.Popup({
-closeButton: false,
-closeOnClick: false
+    closeButton: false,
+    //closeOnClick: false
 });
 
 // Code for the sliders
 
 var ageSlider = document.getElementById("ageSlider");
 var ageLabel = document.getElementById("ageLabel");
-ageSlider.oninput = function() {
+ageSlider.oninput = function () {
     ageLabel.innerHTML = this.value + " Ma";
-    preference['age'] = parseInt(this.value,10);
+    preference['age'] = parseInt(this.value, 10);
     updateSelection();
 }
 
 var sizeSlider = document.getElementById("sizeSlider");
 var sizeLabel = document.getElementById("sizeLabel")
-sizeSlider.oninput = function() {
+sizeSlider.oninput = function () {
     sizeLabel.innerHTML = this.value + " m";
-    preference['size'] = parseInt(this.value,10);
+    preference['size'] = parseInt(this.value, 10);
     updateSelection();
 }
 
 var weightSlider = document.getElementById("weightSlider");
 var weightLabel = document.getElementById("weightLabel");
-weightSlider.oninput = function() {
+weightSlider.oninput = function () {
     weightLabel.innerHTML = this.value + " kg";
-    preference['weight'] = parseInt(this.value,10);
+    preference['weight'] = parseInt(this.value, 10);
     updateSelection();
-} 
+}
 
 var speedSlider = document.getElementById("speedSlider");
 var speedLabel = document.getElementById("speedLabel");
-speedSlider.oninput = function() {
+speedSlider.oninput = function () {
     speedLabel.innerHTML = this.value + " kmh";
-    preference['speed'] = parseInt(this.value,10);
+    preference['speed'] = parseInt(this.value, 10);
     updateSelection();
 }
 
 var dietSlider = document.getElementById("dietSlider");
 var dietLabel = document.getElementById("dietLabel");
-dietSlider.oninput = function() {
+dietSlider.oninput = function () {
     const labels = ["Carnivore", "Indifférent", "Herbivore"];
     const values = ["carnivorous", "indifferent", "herbivorous"];
     dietLabel.innerHTML = labels[parseInt(this.value)];
@@ -160,21 +191,21 @@ dietSlider.oninput = function() {
 
 // Code for adding the circles on the map
 
-map.on("load", function(){
-    map.addSource('selection', {type : 'geojson', data : default_points, generateId: true})
+map.on("load", function () {
+    map.addSource('selection', { type: 'geojson', data: default_points, generateId: true })
     map.addLayer({
-        id : "dinos",
-        type : "circle",
-        source : 'selection',
-        paint : {
+        id: "dinos",
+        type: "circle",
+        source: 'selection',
+        paint: {
             "circle-opacity": ['^', 2, ['*', -5, ['get', 'distance']]],
             "circle-stroke-width": 1,
             "circle-stroke-color": "#000",
             'circle-radius': ['case',
                 // The radius of the circle decreases exponentially with the distance to the preference, with a maximum of 10 (20 if hovered)
                 ['boolean', ['feature-state', 'hover'], false],
-                    ['+', 1, ['*', 20, ['^', 2, ['*', -4, ['get', 'distance']]]]],
-                    ['+', 1, ['*', 10, ['^', 2, ['*', -4, ['get', 'distance']]]]]
+                ['+', 1, ['*', 20, ['^', 2, ['*', -4, ['get', 'distance']]]]],
+                ['+', 1, ['*', 10, ['^', 2, ['*', -4, ['get', 'distance']]]]]
             ],
             "circle-color": ['case',
                 ['boolean', ['feature-state', 'hover'], false],
@@ -191,41 +222,52 @@ map.on("load", function(){
  * N.B. dinos.json is essentially fossils.json, brought to life!
  * It contains only the essential data from fossils.json (name, position, etc) along with values for size, weight, speed, age, etc... generated at random based on the data in dinosaurs.csv and gts.tsv
  */
-d3.json("datasets/dinos.json").then(function(data) {
+d3.json("datasets/dinos.json").then(function (data) {
     console.log(data);
     fossils = data;
-    fossils.forEach(function(item, index) {
+    fossils.forEach(function (item, index) {
         fossils[index]['distance'] = 0.4;
     })
     console.log(fossils)
-    default_points = {type: "FeatureCollection", features: getGeoJSON(data)};
+    default_points = { type: "FeatureCollection", features: getGeoJSON(data) };
     console.log(default_points);
     // data.forEach((item, index) => new mapboxgl.Marker().setLngLat([item['longitude'], item['latitude']]).addTo(map));
 });
 
-d3.json("datasets/gts_tree.json").then(function(data) {
+d3.json("datasets/gts_tree.json").then(function (data) {
     // console.log(data[0]);
 });
 
-d3.csv("datasets/dinosaurs.csv").then(function(data) {
+d3.csv("datasets/dinosaurs.csv").then(function (data) {
     // console.log(data[0]);
 });
 
-d3.tsv("datasets/gts.tsv").then(function(data) {
+d3.tsv("datasets/gts.tsv").then(function (data) {
     // data.forEach((item, index) => console.log(index, item['type']))
 });
 
 
-// Code for displaying the popup when hovering a circle on the map.
+// Code for displaying the popup when clicking a circle on the map.
 var dinoID = null;
 
-map.on("mousemove", 'dinos', (e) => {
-    map.getCanvas().style.cursor = 'pointer';
-
+map.on("click", 'dinos', (e) => {
+    //map.getCanvas().style.cursor = 'pointer';
     //var dinoName = e.features[0].properties.name;
-    var popupHTML = e.features[0].properties.popup;
-    var coordinates = e.features[0].geometry.coordinates.slice();
 
+    var popupHTML = null;
+    let compProfile = document.getElementById("dino-" + e.features[0].id + "-comp");
+
+
+    // Check if the the dino is already in the comparison zone and change the comparison button
+    // Not the best way to do that, it's better to update the marker's content after we click on the comparison button 
+
+    if (typeof (compProfile) != 'undefined' && compProfile != null) {
+        var popupHTML = e.features[0].properties.popup.replace('Comparer', 'Annuler Comparaison');
+    } else {
+        var popupHTML = e.features[0].properties.popup;
+    }
+
+    var coordinates = e.features[0].geometry.coordinates.slice();
     popup.setLngLat(coordinates).setHTML(popupHTML).addTo(map);
 
     if (e.features.length > 0) {
@@ -247,12 +289,23 @@ map.on("mousemove", 'dinos', (e) => {
     }
 });
 
-map.on("mouseleave", 'dinos', function() {
-    clearHover();
+// map.on("mouseleave", 'dinos', function () {
+//     clearHover();
+// });
+
+
+// Change the cursor to a pointer when the mouse is over the places layer.
+map.on('mouseenter', 'dinos', function () {
+    map.getCanvas().style.cursor = 'pointer';
+});
+
+// Change it back to a pointer when it leaves.
+map.on('mouseleave', 'dinos', function () {
+    map.getCanvas().style.cursor = '';
 });
 
 function clearHover() {
-     if (dinoID) {
+    if (dinoID) {
         map.setFeatureState({
             source: "selection",
             id: dinoID
@@ -262,5 +315,5 @@ function clearHover() {
     }
     dinoID = null;
     map.getCanvas().style.cursor = '';
-    popup.remove();   
+    popup.remove();
 }
