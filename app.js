@@ -1,13 +1,14 @@
 
 mapboxgl.accessToken = 'pk.eyJ1IjoidGhvbWJsciIsImEiOiJja2dxbmdseTkwNnVpMnlxd2RjcXF2bHd2In0.-nQuV-bVYgtHWJls-534pw';
 
-const map = new mapboxgl.Map({
+var map = new mapboxgl.Map({
     container: 'map',
     style: 'mapbox://styles/mapbox/outdoors-v11', // stylesheet location
     center: [4.3528, 50.8466], // starting position [lng, lat]
     zoom: 2, // starting zoom
     maxZoom: 9
 });
+
 
 function getGeoJSON(points) {
     let features = Array();
@@ -29,6 +30,7 @@ function getGeoJSON(points) {
                                 <p>Age: ${points[i]["age"]} Ma</p>
                                 <p>Taille: ${points[i]["size"]} m</p>
                                 <p>Poids: ${points[i]["weight"]} kg</p>
+                                <p>Test : ${points[i]["mail"]} </p>
                                 <p>Vitesse: ${points[i]["speed"]} kmh</p>`
                         }
                     }
@@ -200,34 +202,7 @@ d3.json("datasets/dinos.json").then(function(data) {
     default_points = {type: "FeatureCollection", features: getGeoJSON(data)};
     console.log(default_points);
     // data.forEach((item, index) => new mapboxgl.Marker().setLngLat([item['longitude'], item['latitude']]).addTo(map));
-
-    map.addControl(new mapboxgl.NavigationControl({
-        position: "top-left" // The controls appear at the top left
-    }
-));
-
-const features = Array();
-
-d3.json("datasets/fossils.json").then(function(data) {
-    for(let i = 0; i < data.length; i++) {
-        let point = {
-            type : "Feature",
-            geometry : {
-                type : "Point",
-                coordinates : [data[i].longitude, data[i].latitude],
-            },
-            properties : {
-                name : data[i].name,
-            }
-        }
-        features.push(point);
-    }
-
-    //data.forEach((item, index) => new mapboxgl.Marker().setLngLat([item['longitude'], item['latitude']]).addTo(map));
 });
-
-});
-
 
 d3.json("datasets/gts_tree.json").then(function(data) {
     // console.log(data[0]);
