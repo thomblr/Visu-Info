@@ -129,6 +129,7 @@ const svg = d3.select(container)
     .attr("id", "points_container");
 
 var fossils;
+var filteredFossils;
 var default_points;
 var preference = {
     age : 70,
@@ -199,24 +200,19 @@ function updateSelection() {
     document.getElementById("comparison").innerHTML = '';
 
     //console.log(preference);
-    fossils.forEach(function (point, index) {
-        fossils[index]['distance'] = distanceFromPreference(point);
-    });
-    let filtered = fossils.filter(
-        (dino) => predDiet(dino) && predZone(dino) && predSpecies(dino)
-    );
-    let mapped = filtered.map(function(point, i) {
+    
+    let mapped = filteredFossils.map(function(point, i) {
         return { index: i, value : point['distance']};
     });
     mapped.sort(function(a,b) {return (a.value - b.value);});
     let sorted = (mapped.slice(0,15)).map(function(el) {
-        return filtered[el.index];
+        return filteredFossils[el.index];
     });
     
     //console.log("clear");
     clearHover();
     if (showAllDinos) {
-        showPointsOnMap(filtered);
+        showPointsOnMap(filteredFossils);
     } else {
         showPointsOnMap(sorted);
     }
@@ -227,6 +223,16 @@ function updateSelection() {
         ],
         essential: true
     });
+}
+
+function updateFilter() {
+    fossils.forEach(function (point, index) {
+        fossils[index]['distance'] = distanceFromPreference(point);
+    });
+    filteredFossils = fossils.filter(
+        (dino) => predDiet(dino) && predZone(dino) && predSpecies(dino)
+    );
+    updateSelection();
 }
 
 var popup = new mapboxgl.Popup({
@@ -300,26 +306,26 @@ dietSlider.oninput = function () {
     const values = ["carnivorous", "indifferent", "herbivorous"];
     dietLabel.innerHTML = labels[parseInt(this.value)];
     preference['diet'] = values[parseInt(this.value)];
-    updateSelection();
+    updateFilter();
 }
 
 var landCheckbox = document.getElementById("landCheckbox");
 var useLand = true;
 landCheckbox.onclick = function() {
     useLand = this.checked;
-    updateSelection();
+    updateFilter();
 }
 var seaCheckbox = document.getElementById("seaCheckbox");
 var useSea = true;
 seaCheckbox.onclick = function() {
     useSea = this.checked;
-    updateSelection();
+    updateFilter();
 }
 var airCheckbox = document.getElementById("airCheckbox");
 var useAir = true;
 airCheckbox.onclick = function() {
     useAir = this.checked;
-    updateSelection();
+    updateFilter();
 }
 
 const species = ["indifférent"];
@@ -330,7 +336,7 @@ speciesSelect.onchange = function() {
     } else {
         preference['species'] = this.value;
     }
-    updateSelection();
+    updateFilter();
 }
 
 var showAllDinosCheckbox = document.getElementById('showAllDinos');
