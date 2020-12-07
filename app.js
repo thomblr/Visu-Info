@@ -9,7 +9,14 @@ var map = new mapboxgl.Map({
     maxZoom: 9
 });
 
+const container = map.getCanvasContainer();
+const svg = d3.select(container)
+    .append("svg")
+    .attr("id", "points_container");
+
+
 // background: linear-gradient(to right, #ffd194, #70e1f5);
+// Swap colors for color blind mode
 let colorblind = false;
 function toggleColorblind() {
     if (colorblind) {
@@ -58,6 +65,9 @@ function toggleColorblind() {
 }
 
 
+/*
+ Turn an array of entries from fossils into a GeoJSON friendly format
+*/
 function getGeoJSON(points) {
     const diets = {'carnivorous': 'Carnivore', 'herbivorous': 'Herbivore'};
     const zones = {'land': 'Terrestre', 'aquatic': 'Aquatique', 'air': 'Volant'};
@@ -68,6 +78,7 @@ function getGeoJSON(points) {
         let n = Math.floor((Math.random() * 3) + 1);
         let picture = `images/${species}/${species}${n}.png`;
         let percent = percentage(points[i]['distance']);
+        // the html code for the popup
         let profile = `<div id="dino-${i}">
                             <strong>${points[i]["name"]}</strong>
                             <img src="${picture}" alt="foo" class="avatar">
@@ -122,23 +133,7 @@ function showPointsOnMap(points) {
     map.getSource('selection').setData(featurecollection);
 }
 
-const container = map.getCanvasContainer();
 
-const svg = d3.select(container)
-    .append("svg")
-    .attr("id", "points_container");
-
-var fossils;
-var filteredFossils;
-var default_points;
-var preference = {
-    age : 70,
-    size : 10,
-    weight : 100,
-    speed : 50,
-    diet : "indifferent",
-    species: "indifferent"
-};
 
 /*
 Return the "distance" between a given dino specified by point and the preferences
@@ -153,15 +148,20 @@ function distanceFromPreference(point) {
         );
 }
 
+// Return the "percentage" of affinity to the preference based on distance.
 function percentage(distance) {
     // the 3 is for  diet, zone and species, which are always counted in order to avoid dividing by 0.
     let n = useAge + useSize + useWeight + useSpeed;
     if (n==0) {
         return 0;
     }
+    // take the 4th power to try and get more variation in the percentages.
+    // N.B. not very successful :(
     return Math.round(100* ((n-distance)/n )**4 );
     //return 2 ** (-4*distance);
 }
+
+// Define predicates for filtering
 
 predDiet = function(dino) {
     if (preference['diet'] == "indifferent") {
@@ -189,6 +189,14 @@ predSpecies = function(dino) {
     } else {
         return preference['species'] == dino['species'];
     }
+}
+
+// Filter fossils based on diet, zone, and species
+function updateFilter() {
+    filteredFossils = fossils.filter(
+        (dino) => predDiet(dino) && predZone(dino) && predSpecies(dino)
+    );
+    updateSelection();
 }
 
 /*
@@ -228,20 +236,45 @@ function updateSelection() {
     });
 }
 
-function updateFilter() {
-    filteredFossils = fossils.filter(
-        (dino) => predDiet(dino) && predZone(dino) && predSpecies(dino)
-    );
-    updateSelection();
-}
 
 var popup = new mapboxgl.Popup({
     closeButton: false,
     //closeOnClick: false
 });
 
+var fossils; // the dataset of all dinos
+var filteredFossils; // fossils, after filtering by diet, zone and species
+var default_points; // the points displayed on the map on load
+// the default preference vector
+var preference = {
+    age : 70,
+    size : 10,
+    weight : 100,
+    speed : 50,
+    diet : "indifferent",
+    species: "indifferent"
+};
+
+/**
+ * N.B. dinos.json is essentially fossils.json, brought to life!
+ * It contains only the essential data from fossils.json (name, position, etc) along with values for size, weight, speed, age, etc... generated at random based on the data in dinosaurs.csv and gts.tsv
+ */
+d3.json("datasets/dinos.json").then(function (data) {
+    console.log(data);
+    fossils = data;
+    fossils.forEach(function (item, index) {
+        fossils[index]['distance'] = 0.4;
+    })
+    console.log(fossils)
+    filteredFossils = fossils;
+    default_points = { type: "FeatureCollection", features: getGeoJSON(data) };
+    console.log(default_points);
+});
+
+
 // Code for the sliders
 
+// Add a slider for changing the age preference, and a checkbox to ignore it
 var ageCheckbox = document.getElementById("ageCheckbox");
 var useAge = true;
 var ageSlider = document.getElementById("ageSlider");
@@ -256,6 +289,7 @@ ageCheckbox.onclick = function() {
     updateSelection();
 }
 
+// Add a slider for changing the size preference, and a checkbox to ignore it
 var sizeCheckbox = document.getElementById("sizeCheckbox");
 var useSize = true;
 var sizeSlider = document.getElementById("sizeSlider");
@@ -270,6 +304,7 @@ sizeCheckbox.onclick = function() {
     updateSelection();
 }
 
+// Add a slider for changing the weight preference, and a checkbox to ignore it
 var weightCheckbox = document.getElementById("weightCheckbox");
 var useWeight = true;
 var weightSlider = document.getElementById("weightSlider");
@@ -284,6 +319,7 @@ weightCheckbox.onclick = function() {
     updateSelection();
 }
 
+// Add a slider for changing the speed preference, and a checkbox to ignore it
 var speedCheckbox = document.getElementById("speedCheckbox");
 var useSpeed = true;
 var speedSlider = document.getElementById("speedSlider");
@@ -298,7 +334,8 @@ speedCheckbox.onclick = function() {
     updateSelection();
 }
 
-
+// add a slider to change the diet preference
+// N.B. While questionable, the idea of using a slider for this was to make the interface as dynamic and "moving" as possible. After all, it is well known that dinos react well to movement.
 var dietSlider = document.getElementById("dietSlider");
 var dietLabel = document.getElementById("dietLabel");
 dietSlider.oninput = function () {
@@ -309,6 +346,7 @@ dietSlider.oninput = function () {
     updateFilter();
 }
 
+// Add checkboxes for land, sea and air preference
 var landCheckbox = document.getElementById("landCheckbox");
 var useLand = true;
 landCheckbox.onclick = function() {
@@ -328,7 +366,25 @@ airCheckbox.onclick = function() {
     updateFilter();
 }
 
-const species = ["indifférent"];
+// Capitalize the first letter of a string
+function capitalize(string) {
+    return string.replace(/^\w/, (c) => c.toUpperCase());
+}
+
+const species = ["indifférent"]; // this is expanded on load.
+// Get the name of all the species in the dataset and add them as option to the species selector
+d3.csv("datasets/dinosaurs.csv").then(function(data) {
+    console.log(data);
+    data.forEach(function(item) {
+        species.push(item['dinosaur']);
+    })
+    console.log(species);
+    let speciesOptions = species.map(
+        (value) => `<option value="${value}">${capitalize(value)}</option>`);
+    speciesSelect.innerHTML = speciesOptions.join();
+});
+
+// Add a droplist for selecting a single species
 var speciesSelect = document.getElementById('species');
 speciesSelect.onchange = function() {
     if(this.value == "indifférent") {
@@ -339,6 +395,7 @@ speciesSelect.onchange = function() {
     updateFilter();
 }
 
+// Add a checkbox to toggle between displaying all dinos on the map and only the 15 closest to the preference
 var showAllDinosCheckbox = document.getElementById('showAllDinos');
 var showAllDinos = false;
 showAllDinosCheckbox.onclick = function() {
@@ -383,42 +440,14 @@ map.on("load", function () {
     })
 });
 
-// Code for loading the datasets.
 
-/**
- * N.B. dinos.json is essentially fossils.json, brought to life!
- * It contains only the essential data from fossils.json (name, position, etc) along with values for size, weight, speed, age, etc... generated at random based on the data in dinosaurs.csv and gts.tsv
- */
-d3.json("datasets/dinos.json").then(function (data) {
-    console.log(data);
-    fossils = data;
-    fossils.forEach(function (item, index) {
-        fossils[index]['distance'] = 0.4;
-    })
-    console.log(fossils)
-    filteredFossils = fossils;
-    default_points = { type: "FeatureCollection", features: getGeoJSON(data) };
-    console.log(default_points);
-});
+
 
 
 // Code for displaying the popup when clicking a circle on the map.
 var dinoID = null;
 
-function capitalize(string) {
-    return string.replace(/^\w/, (c) => c.toUpperCase());
-}
-// Get the name of all the species in the dataset and add them as option to the species selector
-d3.csv("datasets/dinosaurs.csv").then(function(data) {
-    console.log(data);
-    data.forEach(function(item) {
-        species.push(item['dinosaur']);
-    })
-    console.log(species);
-    let speciesOptions = species.map(
-        (value) => `<option value="${value}">${capitalize(value)}</option>`);
-    speciesSelect.innerHTML = speciesOptions.join();
-});
+
 
 
 map.on("click", 'dinos', (e) => {
@@ -465,7 +494,7 @@ map.on('mousemove', 'dinos', function (e) {
     }
 });
 
-// Change it back to a pointer when it leaves.
+// clear the hover effect when it leaves.
 map.on('mouseleave', 'dinos', function () {
     clearHover();
 });
