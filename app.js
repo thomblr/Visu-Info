@@ -196,9 +196,12 @@ Update the points shown on map only showing the 15 closest points to the prefere
 */
 function updateSelection() {
 
+    filteredFossils.forEach(function (point, index) {
+        filteredFossils[index]['distance'] = distanceFromPreference(point);
+    });
     // Clear the comparison zone
     document.getElementById("comparison").innerHTML = '';
-
+    console.log(filteredFossils);
     //console.log(preference);
     
     let mapped = filteredFossils.map(function(point, i) {
@@ -226,9 +229,6 @@ function updateSelection() {
 }
 
 function updateFilter() {
-    fossils.forEach(function (point, index) {
-        fossils[index]['distance'] = distanceFromPreference(point);
-    });
     filteredFossils = fossils.filter(
         (dino) => predDiet(dino) && predZone(dino) && predSpecies(dino)
     );
@@ -396,6 +396,7 @@ d3.json("datasets/dinos.json").then(function (data) {
         fossils[index]['distance'] = 0.4;
     })
     console.log(fossils)
+    filteredFossils = fossils;
     default_points = { type: "FeatureCollection", features: getGeoJSON(data) };
     console.log(default_points);
 });
@@ -443,7 +444,7 @@ map.on("click", 'dinos', (e) => {
 
 
 // Change the cursor to a pointer when the mouse is over the places layer.
-map.on('mouseenter', 'dinos', function (e) {
+map.on('mousemove', 'dinos', function (e) {
     map.getCanvas().style.cursor = 'pointer';
     
     if (e.features.length > 0) {
@@ -466,7 +467,6 @@ map.on('mouseenter', 'dinos', function (e) {
 
 // Change it back to a pointer when it leaves.
 map.on('mouseleave', 'dinos', function () {
-    map.getCanvas().style.cursor = '';
     clearHover();
 });
 
