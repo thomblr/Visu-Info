@@ -150,7 +150,6 @@ function distanceFromPreference(point) {
 
 // Return the "percentage" of affinity to the preference based on distance.
 function percentage(distance) {
-    // the 3 is for  diet, zone and species, which are always counted in order to avoid dividing by 0.
     let n = useAge + useSize + useWeight + useSpeed;
     if (n==0) {
         return 0;
@@ -239,7 +238,7 @@ function updateSelection() {
 
 var popup = new mapboxgl.Popup({
     closeButton: false,
-    //closeOnClick: false
+    closeOnClick: true
 });
 
 var fossils; // the dataset of all dinos
